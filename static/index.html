@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艾泽拉斯万事通</title>
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ---------- 全局重置 & 字体 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Cinzel', 'Times New Roman', serif;
+            background: #0b0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            /* 模拟魔兽世界风格背景纹理 */
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(180, 120, 50, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(180, 120, 50, 0.10) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, rgba(255, 215, 0, 0.02) 0px, rgba(255, 215, 0, 0.02) 2px, transparent 2px, transparent 8px);
+            background-color: #0d0c0b;
+        }
+
+        /* ---------- 主卡片 ---------- */
+        #chat-box {
+            max-width: 720px;
+            width: 100%;
+            background: linear-gradient(145deg, #1e1a16, #14110e);
+            border: 2px solid #b8860b;
+            border-radius: 24px;
+            padding: 30px 28px 25px;
+            box-shadow:
+                0 0 40px rgba(184, 134, 11, 0.3),
+                inset 0 0 30px rgba(184, 134, 11, 0.05);
+            position: relative;
+            transition: box-shadow 0.3s;
+        }
+        #chat-box:hover {
+            box-shadow: 0 0 60px rgba(184, 134, 11, 0.5), inset 0 0 30px rgba(184, 134, 11, 0.08);
+        }
+
+        /* 装饰性顶部线条 */
+        #chat-box::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, #b8860b, #d4af37, transparent);
+            border-radius: 50%;
+        }
+
+        /* ---------- 标题 ---------- */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(184, 134, 11, 0.3);
+        }
+        .header i {
+            font-size: 2.4rem;
+            color: #d4af37;
+            text-shadow: 0 0 12px #b8860b;
+        }
+        .header h1 {
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: 3px;
+            background: linear-gradient(180deg, #f5e6b0, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 8px rgba(184, 134, 11, 0.3);
+            margin: 0;
+        }
+        .header .sub {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: #a68b5b;
+            letter-spacing: 1px;
+            background: rgba(184, 134, 11, 0.15);
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(184, 134, 11, 0.2);
+            font-style: italic;
+        }
+
+        /* ---------- 输出区域 ---------- */
+        #output {
+            min-height: 240px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #3d2e1b;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            color: #f0e6d3;
+            font-size: 1rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            scrollbar-width: thin;
+            scrollbar-color: #b8860b transparent;
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.6);
+            font-family: 'Segoe UI', 'Candara', sans-serif;
+        }
+        #output::-webkit-scrollbar {
+            width: 6px;
+        }
+        #output::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #output::-webkit-scrollbar-thumb {
+            background: #b8860b;
+            border-radius: 10px;
+        }
+
+        /* 用户 / 助理 标签样式（在文本中） */
+        .user-label {
+            color: #7ec8e3;
+            font-weight: bold;
+        }
+        .assistant-label {
+            color: #f5d742;
+            font-weight: bold;
+        }
+
+        /* ---------- 输入行 ---------- */
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        #msgInput {
+            flex: 1;
+            padding: 14px 20px;
+            background: rgba(30, 26, 22, 0.8);
+            border: 1px solid #4d3a24;
+            border-radius: 60px;
+            color: #f0e6d3;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #msgInput::placeholder {
+            color: #8a7a5f;
+            font-style: italic;
+        }
+        #msgInput:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
+        }
+
+        #sendBtn {
+            padding: 14px 28px;
+            background: linear-gradient(145deg, #b8860b, #8b6b0b);
+            border: none;
+            border-radius: 60px;
+            color: #faf3e0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            letter-spacing: 1px;
+            font-family: 'Cinzel', serif;
+        }
+        #sendBtn i {
+            font-size: 1.1rem;
+        }
+        #sendBtn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            background: linear-gradient(145deg, #d4af37, #b8860b);
+            box-shadow: 0 8px 30px rgba(184, 134, 11, 0.5);
+        }
+        #sendBtn:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ---------- 状态栏 ---------- */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            color: #a68b5b;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 40px;
+            border-left: 2px solid #b8860b;
+        }
+        .status i {
+            color: #d4af37;
+            font-size: 0.9rem;
+        }
+        .status .spinner {
+            display: none;
+            animation: spin 1s linear infinite;
+        }
+        .status.loading .spinner {
+            display: inline-block;
+        }
+        .status.loading .status-text {
+            color: #f5d742;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 600px) {
+            #chat-box { padding: 20px 16px; }
+            .header h1 { font-size: 1.4rem; }
+            .header .sub { font-size: 0.7rem; padding: 2px 10px; }
+            #sendBtn { padding: 12px 18px; font-size: 0.95rem; }
+            #msgInput { padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chat-box">
+        <!-- 标题区 -->
+        <div class="header">
+            <i class="fas fa-dragon"></i>
+            <h1>艾泽拉斯万事通</h1>
+            <span class="sub"><i class="fas fa-crown"></i> 探索者</span>
+        </div>
+
+        <!-- 对话输出 -->
+        <div id="output">🐉 勇敢的冒险者，请提出你的问题……</div>
+
+        <!-- 输入 & 发送 -->
+        <div class="input-row">
+            <input type="text" id="msgInput" placeholder="例如：11.0 元素萨满 天赋推荐" />
+            <button id="sendBtn"><i class="fas fa-feather-alt"></i> 询问</button>
+        </div>
+
+        <!-- 状态 -->
+        <div class="status" id="status">
+            <i class="fas fa-hourglass-half"></i>
+            <span class="status-text">待命</span>
+            <i class="fas fa-spinner spinner"></i>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const output = document.getElementById('output');
+        const status = document.getElementById('status');
+
+        // 辅助：在输出中添加带标签的消息
+        function appendMessage(role, content) {
+            const label = role === 'user' ? '🧑 你' : '🤖 助理';
+            const labelClass = role === 'user' ? 'user-label' : 'assistant-label';
+            // 先附加标签，再换行加内容
+            output.textContent += `\n[${label}] `;
+            // 使用 textContent 无法单独着色，我们用 innerHTML 更灵活
+            // 但为了流式增量，我们用文本节点拼接，简单起见我们整体用 innerHTML 分段
+            // 更可靠的方式：将输出区域拆分为多个 span，但为了简易，直接操作 innerHTML 追加
+            // 但流式输出时每次追加会覆盖，所以我们采用累积变量
+            // 改为使用 innerHTML 并保留已有内容
+        }
+
+        // 全局积累的完整内容（含标签）
+        let fullDisplay = '';
+
+        function resetOutput() {
+            fullDisplay = '🐉 勇敢的冒险者，请提出你的问题……';
+            output.innerHTML = fullDisplay;
+        }
+
+        // 发送消息
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 禁用按钮
+            sendBtn.disabled = true;
+            status.classList.add('loading');
+            status.querySelector('.status-text').textContent = '正在聆听艾泽拉斯的回响……';
+
+            // 构建显示内容：用户消息 + 助理标签
+            fullDisplay += `\n\n🧑 你: ${message}\n🤖 助理: `;
+            output.innerHTML = fullDisplay; // 显示用户消息
+
+            input.value = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            try {
+                                const data = JSON.parse(dataStr);
+                                if (data.content) {
+                                    fullDisplay += data.content;
+                                    output.innerHTML = fullDisplay;
+                                    // 自动滚动到底部
+                                    output.scrollTop = output.scrollHeight;
+                                }
+                            } catch (e) {
+                                // ignore
+                            }
+                        }
+                    }
+                }
+
+                status.querySelector('.status-text').textContent = '✅ 已获知';
+                status.classList.remove('loading');
+
+            } catch (err) {
+                console.error(err);
+                fullDisplay += '\n❌ 连接中断，请重试';
+                output.innerHTML = fullDisplay;
+                status.querySelector('.status-text').textContent = '❌ 出了点小插曲';
+                status.classList.remove('loading');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        // 初始状态
+        resetOutput();
+    </script>
+</body>
+</html>
